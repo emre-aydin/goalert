@@ -1702,5 +1702,8 @@ type ConfigID =
   | 'Webhook.Enable'
   | 'Webhook.AllowedURLs'
   | 'Webhook.BlockPrivateAddresses'
+  | 'Mattermost.Enable'
+  | 'Mattermost.AllowedURLs'
+  | 'Mattermost.BlockPrivateAddresses'
   | 'Feedback.Enable'
   | 'Feedback.OverrideURL'

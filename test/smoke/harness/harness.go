@@ -324,6 +324,7 @@ func (h *Harness) StartWithAppCfgHook(fn func(*app.Config)) {
 	cfg.SMTP.From = "goalert-test@localhost"
 
 	cfg.Webhook.Enable = true
+	cfg.Mattermost.Enable = true
 
 	cfg.Mailgun.Enable = true
 	cfg.Mailgun.APIKey = mailgunAPIKey

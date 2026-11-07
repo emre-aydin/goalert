@@ -143,6 +143,12 @@ type Config struct {
 		BlockPrivateAddresses bool     `info:"If enabled, webhook requests to private, loopback, and link-local addresses (e.g., 10.0.0.0/8, 127.0.0.1, 169.254.169.254) are rejected. The check is applied at connection time, so it also covers DNS names and redirects that resolve to such addresses. If requests are routed through an HTTP proxy, destination policy must be enforced at the proxy."`
 	}
 
+	Mattermost struct {
+		Enable                bool     `public:"true" info:"Enables Mattermost (incoming webhook) as a destination."`
+		AllowedURLs           []string `public:"true" info:"If set, allows Mattermost incoming webhook URLs with these prefixes only. If empty, any URL is allowed, including internal/private network addresses."`
+		BlockPrivateAddresses bool     `info:"If enabled, Mattermost webhook requests to private, loopback, and link-local addresses (e.g., 10.0.0.0/8, 127.0.0.1, 169.254.169.254) are rejected. The check is applied at connection time, so it also covers DNS names and redirects that resolve to such addresses."`
+	}
+
 	Feedback struct {
 		Enable      bool   `public:"true" info:"Enables Feedback link in nav bar."`
 		OverrideURL string `public:"true" info:"Use a custom URL for Feedback link in nav bar."`
@@ -333,6 +339,23 @@ func (cfg Config) ValidWebhookURL(testURL string) bool {
 		return true
 	}
 	for _, baseU := range cfg.Webhook.AllowedURLs {
+		matched, err := MatchURL(baseU, testURL)
+		if err != nil {
+			return false
+		}
+		if matched {
+			return true
+		}
+	}
+	return false
+}
+
+// ValidMattermostURL returns true if the URL is an allowed Mattermost webhook URL.
+func (cfg Config) ValidMattermostURL(testURL string) bool {
+	if len(cfg.Mattermost.AllowedURLs) == 0 {
+		return true
+	}
+	for _, baseU := range cfg.Mattermost.AllowedURLs {
 		matched, err := MatchURL(baseU, testURL)
 		if err != nil {
 			return false
@@ -588,6 +611,11 @@ func (cfg Config) Validate() error {
 
 	for i, urlStr := range cfg.Webhook.AllowedURLs {
 		field := fmt.Sprintf("Webhook.AllowedURLs[%d]", i)
+		err = validate.Many(err, validate.AbsoluteURL(field, urlStr))
+	}
+
+	for i, urlStr := range cfg.Mattermost.AllowedURLs {
+		field := fmt.Sprintf("Mattermost.AllowedURLs[%d]", i)
 		err = validate.Many(err, validate.AbsoluteURL(field, urlStr))
 	}
 
